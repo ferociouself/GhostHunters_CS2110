@@ -33,7 +33,7 @@ public class SplashActivity extends Activity{
 
         setContentView(R.layout.splash);
         ImageView splash_image = (ImageView)findViewById(R.id.splash_image);
-        splash_image.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.splash_screen, 325, 325));
+        splash_image.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.splash_screen, 250, 250));
 
         IntentLauncher launcher = new IntentLauncher();
         launcher.start();
