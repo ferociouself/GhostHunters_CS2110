@@ -5,6 +5,9 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.ShapeDrawable;
@@ -12,11 +15,14 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.support.v4.view.MotionEventCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -38,6 +44,17 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
     public Point size;
 
+    public boolean isTouching;
+    public boolean isCharged;
+    public int initChargerX = 300;
+    public int chargerX = initChargerX + 10;
+
+    public Paint bgPaint;
+    public Paint ballPaint;
+    public Paint chargerPaint;
+
+    public ColorFilter cFilter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,11 +74,32 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         size = new Point();
         display.getSize(size);
         xMax = size.x - 50;
-        yMax = size.y - 50;
+        yMax = size.y - 100;
 
         xPosition = xMax/2;
         yPosition = yMax/2;
 
+        bgPaint = new Paint();
+        chargerPaint = new Paint();
+        ballPaint = new Paint();
+
+        cFilter = new LightingColorFilter(Color.YELLOW, 1);
+        chargerPaint.setARGB(255, 255, 0, 0);
+
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        int action = MotionEventCompat.getActionMasked(event);
+        int index = MotionEventCompat.getActionIndex(event);
+
+        if (action == MotionEvent.ACTION_DOWN) {
+            isTouching = true;
+        } else if (action == MotionEvent.ACTION_UP) {
+            isTouching = false;
+        }
+
+        return true;
     }
 
     @Override
@@ -95,6 +133,11 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         //Calculate new speed
         xVelocity += (xAcceleration * frameTime);
         yVelocity += (yAcceleration * frameTime);
+
+        if (isTouching) {
+            xVelocity = xVelocity / 2;
+            yVelocity = yVelocity / 2;
+        }
 
         //Calc distance travelled in that time
         float xS = (xVelocity/2)*frameTime;
@@ -155,10 +198,12 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
         protected void onDraw(Canvas canvas) {
             final Bitmap bitmap = mainBitmap;
-            Paint paint = new Paint();
-            paint.setARGB(255, 100, 100, 100);
-            canvas.drawRect(0, 0, size.x, size.y, paint);
-            canvas.drawBitmap(bitmap, xPosition, yPosition, null);
+            ThreadTest newThread = new ThreadTest();
+            newThread.chargerSensor();
+            newThread.toucherSensor();
+            canvas.drawRect(0, 0, size.x, size.y, bgPaint);
+            canvas.drawRect(initChargerX, 50, chargerX, 100, chargerPaint);
+            canvas.drawBitmap(bitmap, xPosition, yPosition, ballPaint);
             invalidate();
         }
 
@@ -199,6 +244,30 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
             // Decode bitmap with inSampleSize set
             options.inJustDecodeBounds = false;
             return BitmapFactory.decodeResource(res, resId, options);
+        }
+    }
+
+    public class ThreadTest extends Thread {
+        public void toucherSensor() {
+            if (isTouching) {
+                if (chargerX < initChargerX + 400 && !isCharged) {
+                    chargerX++;
+                } else {
+                    isCharged = true;
+                }
+            }
+        }
+
+        public void chargerSensor() {
+            if (isCharged) {
+                ballPaint.setColorFilter(cFilter);
+                if (chargerX < initChargerX + 10) {
+                    isCharged = false;
+                    ballPaint.setColorFilter(null);
+                } else {
+                    chargerX--;
+                }
+            }
         }
     }
 }
