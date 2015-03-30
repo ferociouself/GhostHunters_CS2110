@@ -28,7 +28,9 @@ public abstract class Entity {
 
     public abstract void update(float xAcceleration, float yAcceleration);
 
-    public abstract boolean collisionDetect();
+    public boolean collisionDetect() {
+        return false;
+    }
 
     public abstract void destroyer();
 }
