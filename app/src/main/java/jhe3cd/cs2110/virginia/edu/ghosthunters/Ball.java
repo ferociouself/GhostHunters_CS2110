@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory;
 /**
  * Created by JacksonEkis on 3/30/15.
  */
-public class Ball {
+public class Ball extends Entity{
     public float xPosition, xVelocity = 0.0f;
     public float yPosition, yVelocity = 0.0f;
     public float xMax, yMax;
@@ -21,15 +21,12 @@ public class Ball {
 
     public Ball (int fileID, float xPosition, float yPosition, float frameTime, float speedMod,
                  float xMax, float yMax) {
-        this.fileID = fileID;
-        this.xPosition = xPosition;
-        this.yPosition = yPosition;
+        super(fileID, xPosition, yPosition, xMax, yMax);
         this.frameTime = frameTime;
         this.speedMod = speedMod;
-        this.xMax = xMax;
-        this.yMax = yMax;
     }
 
+    @Override
     public void update(float xAcceleration, float yAcceleration) {
         xVelocity += (xAcceleration * frameTime);
         yVelocity += (yAcceleration * frameTime);
