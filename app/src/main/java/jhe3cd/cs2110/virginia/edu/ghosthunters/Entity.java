@@ -1,5 +1,7 @@
 package jhe3cd.cs2110.virginia.edu.ghosthunters;
 
+import android.graphics.Paint;
+
 /**
  * Created by JacksonEkis on 3/30/15.
  */
@@ -13,7 +15,8 @@ public abstract class Entity {
 
     public int fileID;
 
-    public Entity(int fileID, float xPosition, float yPosition, float xMax, float yMax, float hitBoxWidth, float hitBoxHeight) {
+    public Entity(int fileID, float xPosition, float yPosition, float xMax, float yMax,
+                  float hitBoxWidth, float hitBoxHeight) {
         this.fileID = fileID;
         this.xPosition = xPosition;
         this.yPosition = yPosition;

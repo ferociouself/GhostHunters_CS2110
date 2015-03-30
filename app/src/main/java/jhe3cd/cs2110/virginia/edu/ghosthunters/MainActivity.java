@@ -39,7 +39,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     private Bitmap mainBitmap;
     private Bitmap mainMetal;
     private SensorManager sensorManager = null;
-    public float frameTime = 0.666f;
+    public static float frameTime = 0.666f;
 
     private Sensor accelerometer;
 
@@ -53,10 +53,11 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     public Paint bgPaint;
     public Paint ballPaint;
     public Paint chargerPaint;
+    public Paint genericPaint;
 
     public ColorFilter cFilter;
 
-    public Ball ball;
+    public static Ball ball;
 
     public ArrayList<Ghost> ghostArray = new ArrayList<>();
 
@@ -84,6 +85,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         xPosition = xMax/2;
         yPosition = yMax/2;
 
+        genericPaint = new Paint();
         bgPaint = new Paint();
         chargerPaint = new Paint();
         ballPaint = new Paint();
@@ -92,7 +94,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         chargerPaint.setARGB(255, 255, 0, 0);
         bgPaint.setARGB(255, 100, 100, 100);
 
-        ball = new Ball(R.drawable.ball, xPosition, yPosition, frameTime, 1, xMax, yMax);
+        ball = new Ball(R.drawable.ball, xPosition, yPosition, 1, xMax, yMax, 100, 100);
 
 
     }

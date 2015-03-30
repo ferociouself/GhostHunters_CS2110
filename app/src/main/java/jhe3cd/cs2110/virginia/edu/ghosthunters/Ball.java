@@ -10,7 +10,6 @@ public class Ball extends Entity{
     public float xPosition, xVelocity = 0.0f;
     public float yPosition, yVelocity = 0.0f;
     public float xMax, yMax;
-    public float frameTime;
 
     public float speedMod;
 
@@ -19,17 +18,16 @@ public class Ball extends Entity{
 
     public int fileID;
 
-    public Ball (int fileID, float xPosition, float yPosition, float frameTime, float speedMod,
+    public Ball (int fileID, float xPosition, float yPosition, float speedMod,
                  float xMax, float yMax, int hitBoxWidth, int hitBoxHeight) {
         super(fileID, xPosition, yPosition, xMax, yMax, hitBoxWidth, hitBoxHeight);
-        this.frameTime = frameTime;
         this.speedMod = speedMod;
     }
 
     @Override
     public void update(float xAcceleration, float yAcceleration) {
-        xVelocity += (xAcceleration * frameTime);
-        yVelocity += (yAcceleration * frameTime);
+        xVelocity += (xAcceleration * MainActivity.frameTime);
+        yVelocity += (yAcceleration * MainActivity.frameTime);
 
         if (isTouching) {
             xVelocity = xVelocity / 2;
@@ -40,8 +38,8 @@ public class Ball extends Entity{
         yVelocity *= speedMod;
 
         //Calc distance travelled in that time
-        float xS = (xVelocity/2)*frameTime;
-        float yS = (yVelocity/2)*frameTime;
+        float xS = (xVelocity/2)*MainActivity.frameTime;
+        float yS = (yVelocity/2)*MainActivity.frameTime;
 
         //Add to position negative due to sensor
         //readings being opposite to what we want!
