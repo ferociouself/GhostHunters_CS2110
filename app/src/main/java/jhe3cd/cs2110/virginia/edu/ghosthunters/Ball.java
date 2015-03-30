@@ -20,8 +20,8 @@ public class Ball extends Entity{
     public int fileID;
 
     public Ball (int fileID, float xPosition, float yPosition, float frameTime, float speedMod,
-                 float xMax, float yMax) {
-        super(fileID, xPosition, yPosition, xMax, yMax);
+                 float xMax, float yMax, int hitBoxWidth, int hitBoxHeight) {
+        super(fileID, xPosition, yPosition, xMax, yMax, hitBoxWidth, hitBoxHeight);
         this.frameTime = frameTime;
         this.speedMod = speedMod;
     }
@@ -62,6 +62,14 @@ public class Ball extends Entity{
             yPosition = 0;
             yVelocity = -(yVelocity * 0.9f);
         }
+    }
+
+    public boolean collisionDetect() {
+        return false;
+    }
+
+    public void destroyer() {
+        //TODO DESTROY STUFF!
     }
 
     public void toggleTouching() {
