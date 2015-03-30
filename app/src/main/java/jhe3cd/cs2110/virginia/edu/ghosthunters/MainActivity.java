@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import java.util.*;
 
 
 public class MainActivity extends ActionBarActivity implements SensorEventListener {
@@ -54,6 +55,10 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     public Paint chargerPaint;
 
     public ColorFilter cFilter;
+
+    public Ball ball;
+
+    public ArrayList<Ghost> ghostArray = new ArrayList<>();
 
 
     @Override
@@ -85,18 +90,21 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
         cFilter = new LightingColorFilter(Color.YELLOW, 1);
         chargerPaint.setARGB(255, 255, 0, 0);
+        bgPaint.setARGB(255, 100, 100, 100);
+
+        ball = new Ball(R.drawable.ball, xPosition, yPosition, frameTime, 1, xMax, yMax);
+
 
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event){
         int action = MotionEventCompat.getActionMasked(event);
-        int index = MotionEventCompat.getActionIndex(event);
 
         if (action == MotionEvent.ACTION_DOWN) {
-            isTouching = true;
+            ball.toggleTouching();
         } else if (action == MotionEvent.ACTION_UP) {
-            isTouching = false;
+            ball.toggleTouching();
         }
 
         return true;
@@ -125,53 +133,22 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             yAcceleration = event.values[1];
             xAcceleration = event.values[0];
-            updateBall();
+            update();
         }
     }
 
-    private void updateBall() {
-        //Calculate new speed
-        xVelocity += (xAcceleration * frameTime);
-        yVelocity += (yAcceleration * frameTime);
-
-        if (isTouching) {
-            xVelocity = xVelocity / 2;
-            yVelocity = yVelocity / 2;
-        }
-
-        //Calc distance travelled in that time
-        float xS = (xVelocity/2)*frameTime;
-        float yS = (yVelocity/2)*frameTime;
-
-        //Add to position negative due to sensor
-        //readings being opposite to what we want!
-        xPosition -= xS;
-        yPosition += yS;
-
-        if (xPosition > xMax) {
-            xPosition = xMax;
-            xVelocity = -(xVelocity * 0.9f);
-        } else if (xPosition < 0) {
-            xPosition = 0;
-            xVelocity = -(xVelocity * 0.9f);
-        }
-        if (yPosition > yMax) {
-            yPosition = yMax;
-            yVelocity = -(yVelocity * 0.9f);
-        } else if (yPosition < 0) {
-            yPosition = 0;
-            yVelocity = -(yVelocity * 0.9f);
-        }
+    private void update() {
+        ball.update(xAcceleration, yAcceleration);
     }
 
-    @Override
+/*    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
+    }*/
 
-    @Override
+/*    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -184,15 +161,15 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     public class CustomDrawableView extends View {
         public CustomDrawableView(Context context) {
             super(context);
-            Bitmap ball = BitmapFactory.decodeResource(getResources(), R.drawable.ball);
-            final int dstWidth = 50;
-            final int dstHeight = 50;
-            mainBitmap = Bitmap.createScaledBitmap(ball, dstWidth, dstHeight, true);
+            Bitmap ballBMP = BitmapFactory.decodeResource(getResources(), ball.getFileID());
+            final int dstWidth = 100;
+            final int dstHeight = 100;
+            mainBitmap = Bitmap.createScaledBitmap(ballBMP, dstWidth, dstHeight, true);
 
         }
 
@@ -203,7 +180,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
             newThread.toucherSensor();
             canvas.drawRect(0, 0, size.x, size.y, bgPaint);
             canvas.drawRect(initChargerX, 50, chargerX, 100, chargerPaint);
-            canvas.drawBitmap(bitmap, xPosition, yPosition, ballPaint);
+            canvas.drawBitmap(bitmap, ball.getxPosition(), ball.getyPosition(), ballPaint);
             invalidate();
         }
 
