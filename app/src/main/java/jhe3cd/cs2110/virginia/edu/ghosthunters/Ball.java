@@ -62,10 +62,6 @@ public class Ball extends Entity{
         }
     }
 
-    public boolean collisionDetect() {
-        return false;
-    }
-
     public void destroyer() {
         //TODO DESTROY STUFF!
     }
