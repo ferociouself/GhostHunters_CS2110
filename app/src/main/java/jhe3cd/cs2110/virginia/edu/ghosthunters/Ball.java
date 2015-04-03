@@ -2,36 +2,50 @@ package jhe3cd.cs2110.virginia.edu.ghosthunters;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.Paint;
 
 /**
  * Created by JacksonEkis on 3/30/15.
  */
 public class Ball extends Entity{
-    public float xPosition, xVelocity = 0.0f;
-    public float yPosition, yVelocity = 0.0f;
-    public float xMax, yMax;
+    public float xVelocity, xAcceleration = 0.0f;
+    public float yVelocity, yAcceleration = 0.0f;
 
     public float speedMod;
+    public static float origSpeedMod;
 
     public boolean isTouching;
     public boolean isCharged;
 
     public int fileID;
 
-    public Ball (int fileID, float xPosition, float yPosition, float speedMod,
-                 float xMax, float yMax, int hitBoxWidth, int hitBoxHeight) {
+    private Paint paint;
+
+    public Ball (int fileID, int xPosition, int yPosition, float speedMod,
+                 int xMax, int yMax, int hitBoxWidth, int hitBoxHeight) {
         super(fileID, xPosition, yPosition, xMax, yMax, hitBoxWidth, hitBoxHeight);
         this.speedMod = speedMod;
+        origSpeedMod = speedMod;
+        paint = new Paint();
+    }
+
+    public void updateAcceleration (float xAcceleration, float yAcceleration){
+        this.xAcceleration = xAcceleration;
+        this.yAcceleration = yAcceleration;
     }
 
     @Override
-    public void update(float xAcceleration, float yAcceleration) {
+    public void update() {
         xVelocity += (xAcceleration * MainActivity.frameTime);
         yVelocity += (yAcceleration * MainActivity.frameTime);
 
         if (isTouching) {
-            xVelocity = xVelocity / 2;
-            yVelocity = yVelocity / 2;
+            speedMod = 0.5f;
+        } else {
+            speedMod = origSpeedMod;
         }
 
         xVelocity *= speedMod;
@@ -43,8 +57,8 @@ public class Ball extends Entity{
 
         //Add to position negative due to sensor
         //readings being opposite to what we want!
-        xPosition -= xS;
-        yPosition += yS;
+        xPosition -= (int) xS;
+        yPosition += (int) yS;
 
         if (xPosition > xMax) {
             xPosition = xMax;
@@ -66,15 +80,20 @@ public class Ball extends Entity{
         //TODO DESTROY STUFF!
     }
 
+    public boolean filterChanger(ColorFilter cFilter) {
+        paint.setColorFilter(cFilter);
+        return paint.getColorFilter().equals(cFilter);
+    }
+
     public void toggleTouching() {
         isTouching = !isTouching;
     }
 
-    public float getxPosition() {
+    public int getxPosition() {
         return xPosition;
     }
 
-    public float getyPosition() {
+    public int getyPosition() {
         return yPosition;
     }
 
@@ -92,5 +111,17 @@ public class Ball extends Entity{
 
     public boolean isTouching() {
         return isTouching;
+    }
+
+    public void setTouching(boolean isTouching) {
+        this.isTouching = isTouching;
+    }
+
+    public void setCharged(boolean isCharged) {
+        this.isCharged = isCharged;
+    }
+
+    public Paint getPaint() {
+        return paint;
     }
 }

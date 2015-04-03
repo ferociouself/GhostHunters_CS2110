@@ -10,6 +10,7 @@ import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -33,9 +34,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
     CustomDrawableView customDrawView = null;
     ShapeDrawable drawnShape = new ShapeDrawable();
-    public float xPosition, xAcceleration, xVelocity = 0.0f;
-    public float yPosition, yAcceleration, yVelocity = 0.0f;
-    public float xMax, yMax;
+    public int xMax, yMax;
     private Bitmap mainBitmap;
     private Bitmap mainMetal;
     private SensorManager sensorManager = null;
@@ -53,14 +52,17 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     public Paint bgPaint;
     public Paint ballPaint;
     public Paint chargerPaint;
+    public Paint chargerBGPaint;
     public Paint genericPaint;
 
     public ColorFilter cFilter;
 
-    public static Ball ball;
+    public Ball ball;
 
     public ArrayList<Ghost> ghostArray = new ArrayList<>();
+    public ArrayList<Item> itemArray = new ArrayList<>();
 
+    public ArrayList<Entity> entityList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,9 +74,6 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
 
-        customDrawView = new CustomDrawableView(this);
-        setContentView(customDrawView);
-
         // Finding the boundaries
         Display display = getWindowManager().getDefaultDisplay();
         size = new Point();
@@ -82,21 +81,28 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         xMax = size.x - 50;
         yMax = size.y - 100;
 
-        xPosition = xMax/2;
-        yPosition = yMax/2;
-
         genericPaint = new Paint();
         bgPaint = new Paint();
         chargerPaint = new Paint();
+        chargerBGPaint = new Paint();
         ballPaint = new Paint();
 
         cFilter = new LightingColorFilter(Color.YELLOW, 1);
         chargerPaint.setARGB(255, 255, 0, 0);
+        chargerPaint.setARGB(200, 200, 50, 50);
         bgPaint.setARGB(255, 100, 100, 100);
 
-        ball = new Ball(R.drawable.ball, xPosition, yPosition, 1, xMax, yMax, 100, 100);
+        createEntities();
 
+        customDrawView = new CustomDrawableView(this);
+        setContentView(customDrawView);
+    }
 
+    public boolean createEntities(){
+        ball = new Ball(R.drawable.ball, xMax/2, yMax/2, 1, xMax, yMax, 100, 100);
+        entityList.add(ball);
+
+        return true;
     }
 
     @Override
@@ -133,14 +139,18 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     @Override
     public final void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            yAcceleration = event.values[1];
-            xAcceleration = event.values[0];
-            update();
+            ball.updateAcceleration(event.values[0], event.values[1]);
         }
     }
 
     private void update() {
-        ball.update(xAcceleration, yAcceleration);
+        for (Entity e : entityList) {
+            e.update();
+        }
+    }
+
+    public Ball getBall() {
+        return ball;
     }
 
 /*    @Override
@@ -164,11 +174,10 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
         return super.onOptionsItemSelected(item);
     }*/
-
     public class CustomDrawableView extends View {
         public CustomDrawableView(Context context) {
             super(context);
-            Bitmap ballBMP = BitmapFactory.decodeResource(getResources(), ball.getFileID());
+            Bitmap ballBMP = BitmapFactory.decodeResource(getResources(), R.drawable.ball);
             final int dstWidth = 100;
             final int dstHeight = 100;
             mainBitmap = Bitmap.createScaledBitmap(ballBMP, dstWidth, dstHeight, true);
@@ -178,9 +187,11 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         protected void onDraw(Canvas canvas) {
             final Bitmap bitmap = mainBitmap;
             ThreadTest newThread = new ThreadTest();
+            update();
             newThread.chargerSensor();
             newThread.toucherSensor();
             canvas.drawRect(0, 0, size.x, size.y, bgPaint);
+            canvas.drawRect(initChargerX - 10, 40, initChargerX + 410, 110, chargerBGPaint);
             canvas.drawRect(initChargerX, 50, chargerX, 100, chargerPaint);
             canvas.drawBitmap(bitmap, ball.getxPosition(), ball.getyPosition(), ballPaint);
             invalidate();
@@ -228,20 +239,22 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
     public class ThreadTest extends Thread {
         public void toucherSensor() {
-            if (isTouching) {
-                if (chargerX < initChargerX + 400 && !isCharged) {
+            if (ball.isTouching()) {
+                if (chargerX < initChargerX + 400 && !ball.isCharged()) {
                     chargerX++;
                 } else {
-                    isCharged = true;
+                    ball.setCharged(true);
                 }
             }
         }
 
         public void chargerSensor() {
-            if (isCharged) {
-                ballPaint.setColorFilter(cFilter);
+            if (ball.isCharged()) {
+                if (ballPaint.getColorFilter() != null) {
+                    ballPaint.setColorFilter(cFilter);
+                }
                 if (chargerX < initChargerX + 10) {
-                    isCharged = false;
+                    ball.setCharged(false);
                     ballPaint.setColorFilter(null);
                 } else {
                     chargerX--;

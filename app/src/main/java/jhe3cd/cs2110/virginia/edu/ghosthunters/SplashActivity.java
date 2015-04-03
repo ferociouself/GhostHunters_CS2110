@@ -19,7 +19,7 @@ import android.widget.ImageView;
 public class SplashActivity extends Activity{
 
     private static String TAG = SplashActivity.class.getName();
-    private static long SLEEP_TIME = 8;
+    private static long SLEEP_TIME = 1;
 
     @Override
     public void onCreate(Bundle savedInstanceState){

@@ -15,11 +15,12 @@ public class Ghost extends Entity{
     private Point target;
     private Item booty;
     private int health;
-    private float x2Position;
-    private float y2Position;
 
-    public Ghost(float xPosition, float yPosition, int fileID, Point target, Item booty, int health,
-                 int hitBoxWidth, int hitBoxHeight, float xMax, float yMax, float xAcceleration, float yAcceleration) {
+    private boolean ballTouching;
+    private boolean ballCharged;
+
+    public Ghost(int xPosition, int yPosition, int fileID, Point target, Item booty, int health,
+                 int hitBoxWidth, int hitBoxHeight, int xMax, int yMax, float xAcceleration, float yAcceleration) {
         super(fileID, xPosition, yPosition, xMax, yMax, hitBoxWidth, hitBoxHeight);
         this.target = target;
         this.booty = booty;
@@ -29,41 +30,86 @@ public class Ghost extends Entity{
         this.xAcceleration = xAcceleration;
         this.yAcceleration = yAcceleration;
         this.isVisible = false;
-        this.x2Position = 0;
-        this.y2Position = 0;
+        this.ballTouching = false;
+        this.ballCharged = false;
     }
 
-    public void updateLocation(float x, float y) {
-        this.x2Position = MainActivity.ball.xPosition;
-        this.y2Position = MainActivity.ball.yPosition;
+    public void updateTarget(int x, int y, boolean isTouching, boolean isCharged) {
+        target.set(x, y);
+        ballTouching = isTouching;
+        ballCharged = isCharged;
+        update();
     }
 
-    public void update(float xAcceleration, float yAcceleration) {
-        updateLocation(xPosition, yPosition);
-        this.xVelocity += (xAcceleration * MainActivity.frameTime);
-        this.yVelocity += (yAcceleration * MainActivity.frameTime);
-
-        if(MainActivity.ball.isTouching && !MainActivity.ball.isCharged) {
-            if(this.xPosition < this.x2Position) {
-                this.xPosition += this.xVelocity;
-                this.hitBoxWidth = this.xPosition; // fix this when we have hitbox idea solidifed
+    public void update() {
+        if(ballTouching && !ballCharged) {
+            if(this.xPosition < target.x) {
+                this.xAcceleration = Math.abs(xAcceleration);
+                //this.hitBoxWidth = this.xPosition; // fix this when we have hitbox idea solidifed
             }
-            if(this.xPosition > this.x2Position) {
-                this.xPosition -= this.xVelocity;
+            if(this.xPosition > target.x) {
+                this.xAcceleration = -(Math.abs(xAcceleration));
                 // hitbox change
             }
-            if(this.yPosition < this.y2Position) {
-                this.yPosition += this.yVelocity;
+            if(this.yPosition < target.y) {
+                this.yAcceleration = Math.abs(yAcceleration);
                 // hitbox change
             }
-            if(this.yPosition > this.y2Position) {
-                this.yPosition -= this.yVelocity;
+            if(this.yPosition > target.y) {
+                this.yAcceleration = -(Math.abs(yAcceleration));
                 // hitbox change
             }
         }
+        this.xVelocity += (xAcceleration * MainActivity.frameTime);
+        this.yVelocity += (yAcceleration * MainActivity.frameTime);
+
+        //Calc distance travelled in that time
+        float xS = (xVelocity/2)*MainActivity.frameTime;
+        float yS = (yVelocity/2)*MainActivity.frameTime;
+
+        //Add to position negative due to sensor
+        //readings being opposite to what we want!
+        xPosition -= xS;
+        yPosition += yS;
     }
 
     public void destroyer() {
 
+    }
+
+    public float getxVelocity() {
+        return xVelocity;
+    }
+
+    public float getyVelocity() {
+        return yVelocity;
+    }
+
+    public boolean isVisible() {
+        return isVisible;
+    }
+
+    public Item getBooty() {
+        return booty;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setVisible(boolean isVisible) {
+        this.isVisible = isVisible;
+    }
+
+    public void setBooty(Item booty) {
+        this.booty = booty;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
+    }
+
+    public void setTarget(Point target) {
+        this.target = target;
     }
 }
