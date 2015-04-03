@@ -45,32 +45,30 @@ public class Ghost extends Entity{
         if(ballTouching && !ballCharged) {
             if(this.xPosition < target.x) {
                 this.xAcceleration = Math.abs(xAcceleration);
-                //this.hitBoxWidth = this.xPosition; // fix this when we have hitbox idea solidifed
             }
             if(this.xPosition > target.x) {
                 this.xAcceleration = -(Math.abs(xAcceleration));
-                // hitbox change
             }
             if(this.yPosition < target.y) {
                 this.yAcceleration = Math.abs(yAcceleration);
-                // hitbox change
             }
             if(this.yPosition > target.y) {
                 this.yAcceleration = -(Math.abs(yAcceleration));
-                // hitbox change
             }
         }
-        this.xVelocity += (xAcceleration * MainActivity.frameTime);
-        this.yVelocity += (yAcceleration * MainActivity.frameTime);
+        this.xVelocity += (xAcceleration * MainActivity.FRAME_TIME);
+        this.yVelocity += (yAcceleration * MainActivity.FRAME_TIME);
 
         //Calc distance travelled in that time
-        float xS = (xVelocity/2)*MainActivity.frameTime;
-        float yS = (yVelocity/2)*MainActivity.frameTime;
+        float xS = (xVelocity/2)*MainActivity.FRAME_TIME;
+        float yS = (yVelocity/2)*MainActivity.FRAME_TIME;
 
         //Add to position negative due to sensor
         //readings being opposite to what we want!
         xPosition -= xS;
         yPosition += yS;
+
+        hitBoxUpdate();
     }
 
     public void destroyer() {

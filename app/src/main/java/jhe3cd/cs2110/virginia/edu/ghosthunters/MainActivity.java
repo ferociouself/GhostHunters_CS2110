@@ -33,21 +33,20 @@ import java.util.*;
 public class MainActivity extends ActionBarActivity implements SensorEventListener {
 
     CustomDrawableView customDrawView = null;
-    ShapeDrawable drawnShape = new ShapeDrawable();
     public int xMax, yMax;
-    private Bitmap mainBitmap;
-    private Bitmap mainMetal;
     private SensorManager sensorManager = null;
-    public static float frameTime = 0.666f;
+    public static final float FRAME_TIME = 0.666f;
 
     private Sensor accelerometer;
 
     public Point size;
 
-    public boolean isTouching;
-    public boolean isCharged;
     public int initChargerX = 300;
     public int chargerX = initChargerX + 10;
+    public static final int CHARGER_DECAY_RATE = 3;
+    // Charger decay rate in ticks per 1 decay.
+    public int miniChargerCounter = 0;
+    // Keeps track of the ticks.
 
     public Paint bgPaint;
     public Paint ballPaint;
@@ -59,8 +58,8 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
     public Ball ball;
 
-    public ArrayList<Ghost> ghostArray = new ArrayList<>();
-    public ArrayList<Item> itemArray = new ArrayList<>();
+    public static final int BALL_WIDTH = 22;
+    public static final int BALL_HEIGHT = 22;
 
     public ArrayList<Entity> entityList = new ArrayList<>();
 
@@ -79,7 +78,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         size = new Point();
         display.getSize(size);
         xMax = size.x - 50;
-        yMax = size.y - 100;
+        yMax = size.y - 290;
 
         genericPaint = new Paint();
         bgPaint = new Paint();
@@ -88,8 +87,9 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         ballPaint = new Paint();
 
         cFilter = new LightingColorFilter(Color.YELLOW, 1);
+
         chargerPaint.setARGB(255, 255, 0, 0);
-        chargerPaint.setARGB(200, 200, 50, 50);
+        chargerBGPaint.setARGB(200, 0, 0, 0);
         bgPaint.setARGB(255, 100, 100, 100);
 
         createEntities();
@@ -99,7 +99,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     }
 
     public boolean createEntities(){
-        ball = new Ball(R.drawable.ball, xMax/2, yMax/2, 1, xMax, yMax, 100, 100);
+        ball = new Ball(R.drawable.ball, xMax/2, yMax/2, 1, xMax, yMax, BALL_WIDTH, BALL_HEIGHT, 0.9f);
         entityList.add(ball);
 
         return true;
@@ -139,7 +139,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     @Override
     public final void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            ball.updateAcceleration(event.values[0], event.values[1]);
+            ball.updateAcceleration(event.values[1], -(event.values[0]));
         }
     }
 
@@ -147,6 +147,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         for (Entity e : entityList) {
             e.update();
         }
+        ball.handleCollisions(entityList);
     }
 
     public Ball getBall() {
@@ -175,17 +176,19 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
         return super.onOptionsItemSelected(item);
     }*/
     public class CustomDrawableView extends View {
+        private Bitmap ballBMP;
         public CustomDrawableView(Context context) {
             super(context);
-            Bitmap ballBMP = BitmapFactory.decodeResource(getResources(), R.drawable.ball);
-            final int dstWidth = 100;
-            final int dstHeight = 100;
-            mainBitmap = Bitmap.createScaledBitmap(ballBMP, dstWidth, dstHeight, true);
+            /*Bitmap ballBMP = BitmapFactory.decodeResource(getResources(), R.drawable.ball);
+            final int dstWidth = BALL_WIDTH;
+            final int dstHeight = BALL_HEIGHT;
+            mainBitmap = Bitmap.createScaledBitmap(ballBMP, dstWidth, dstHeight, true);*/
+            ballBMP = decodeSampledBitmapFromResource(getResources(), R.drawable.ball,
+                    BALL_WIDTH, BALL_HEIGHT);
 
         }
 
         protected void onDraw(Canvas canvas) {
-            final Bitmap bitmap = mainBitmap;
             ThreadTest newThread = new ThreadTest();
             update();
             newThread.chargerSensor();
@@ -193,7 +196,7 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
             canvas.drawRect(0, 0, size.x, size.y, bgPaint);
             canvas.drawRect(initChargerX - 10, 40, initChargerX + 410, 110, chargerBGPaint);
             canvas.drawRect(initChargerX, 50, chargerX, 100, chargerPaint);
-            canvas.drawBitmap(bitmap, ball.getxPosition(), ball.getyPosition(), ballPaint);
+            canvas.drawBitmap(ballBMP, ball.getxPosition(), ball.getyPosition(), ballPaint);
             invalidate();
         }
 
@@ -250,14 +253,19 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
         public void chargerSensor() {
             if (ball.isCharged()) {
-                if (ballPaint.getColorFilter() != null) {
+                if (ballPaint.getColorFilter() == null) {
                     ballPaint.setColorFilter(cFilter);
                 }
                 if (chargerX < initChargerX + 10) {
                     ball.setCharged(false);
                     ballPaint.setColorFilter(null);
                 } else {
-                    chargerX--;
+                    if (miniChargerCounter >= CHARGER_DECAY_RATE) {
+                        chargerX--;
+                        miniChargerCounter = 0;
+                    } else {
+                        miniChargerCounter++;
+                    }
                 }
             }
         }

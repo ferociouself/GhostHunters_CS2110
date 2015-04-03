@@ -1,11 +1,9 @@
 package jhe3cd.cs2110.virginia.edu.ghosthunters;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
-import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
+
+import java.util.ArrayList;
 
 /**
  * Created by JacksonEkis on 3/30/15.
@@ -13,6 +11,7 @@ import android.graphics.Paint;
 public class Ball extends Entity{
     public float xVelocity, xAcceleration = 0.0f;
     public float yVelocity, yAcceleration = 0.0f;
+    public float bounceFactor;
 
     public float speedMod;
     public static float origSpeedMod;
@@ -25,11 +24,12 @@ public class Ball extends Entity{
     private Paint paint;
 
     public Ball (int fileID, int xPosition, int yPosition, float speedMod,
-                 int xMax, int yMax, int hitBoxWidth, int hitBoxHeight) {
+                 int xMax, int yMax, int hitBoxWidth, int hitBoxHeight, float bounceFactor) {
         super(fileID, xPosition, yPosition, xMax, yMax, hitBoxWidth, hitBoxHeight);
         this.speedMod = speedMod;
         origSpeedMod = speedMod;
         paint = new Paint();
+        this.bounceFactor = bounceFactor;
     }
 
     public void updateAcceleration (float xAcceleration, float yAcceleration){
@@ -39,8 +39,8 @@ public class Ball extends Entity{
 
     @Override
     public void update() {
-        xVelocity += (xAcceleration * MainActivity.frameTime);
-        yVelocity += (yAcceleration * MainActivity.frameTime);
+        xVelocity += (xAcceleration * MainActivity.FRAME_TIME);
+        yVelocity += (yAcceleration * MainActivity.FRAME_TIME);
 
         if (isTouching) {
             speedMod = 0.5f;
@@ -51,29 +51,33 @@ public class Ball extends Entity{
         xVelocity *= speedMod;
         yVelocity *= speedMod;
 
-        //Calc distance travelled in that time
-        float xS = (xVelocity/2)*MainActivity.frameTime;
-        float yS = (yVelocity/2)*MainActivity.frameTime;
+        //Calculate distance travelled in that time
+        float xS = (xVelocity)*MainActivity.FRAME_TIME;
+        float yS = (yVelocity)*MainActivity.FRAME_TIME;
 
         //Add to position negative due to sensor
         //readings being opposite to what we want!
         xPosition -= (int) xS;
         yPosition += (int) yS;
 
+        // Creates the bouncing effect if the ball touches a side.
         if (xPosition > xMax) {
             xPosition = xMax;
-            xVelocity = -(xVelocity * 0.9f);
+            xVelocity = -(xVelocity * bounceFactor);
         } else if (xPosition < 0) {
             xPosition = 0;
-            xVelocity = -(xVelocity * 0.9f);
+            xVelocity = -(xVelocity * bounceFactor);
         }
         if (yPosition > yMax) {
             yPosition = yMax;
-            yVelocity = -(yVelocity * 0.9f);
+            yVelocity = -(yVelocity * bounceFactor);
         } else if (yPosition < 0) {
             yPosition = 0;
-            yVelocity = -(yVelocity * 0.9f);
+            yVelocity = -(yVelocity * bounceFactor);
         }
+
+        // MAKE SURE TO ALWAYS UPDATE THE HITBOX AFTER MOVING FOR EACH ENTITY!!!
+        hitBoxUpdate();
     }
 
     public void destroyer() {
@@ -83,6 +87,11 @@ public class Ball extends Entity{
     public boolean filterChanger(ColorFilter cFilter) {
         paint.setColorFilter(cFilter);
         return paint.getColorFilter().equals(cFilter);
+    }
+
+    public void handleCollisions(ArrayList<Entity> entityArrayList) {
+        ArrayList<Entity> collisionArrayList = new ArrayList<>();
+        collisionArrayList.addAll(collisionDetect(entityArrayList));
     }
 
     public void toggleTouching() {

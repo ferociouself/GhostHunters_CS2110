@@ -3,11 +3,13 @@ package jhe3cd.cs2110.virginia.edu.ghosthunters;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -21,6 +23,9 @@ public class SplashActivity extends Activity{
     private static String TAG = SplashActivity.class.getName();
     private static long SLEEP_TIME = 1;
 
+    private static final int SPLASH_REDUCER_WIDTH = 400;
+    private static final int SPLASH_REDUCER_HEIGHT = 400;
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -31,9 +36,14 @@ public class SplashActivity extends Activity{
 
 
 
+        /*// Finding the boundaries
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);*/
+
         setContentView(R.layout.splash);
         ImageView splash_image = (ImageView)findViewById(R.id.splash_image);
-        splash_image.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.splash_screen, 250, 250));
+        splash_image.setImageBitmap(decodeSampledBitmapFromResource(getResources(), R.drawable.splash_screen, SPLASH_REDUCER_WIDTH, SPLASH_REDUCER_HEIGHT));
 
         IntentLauncher launcher = new IntentLauncher();
         launcher.start();
