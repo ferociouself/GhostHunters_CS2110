@@ -63,6 +63,8 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
 
     public ArrayList<Entity> entityList = new ArrayList<>();
 
+    public int numGhostsSpawned = 8;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,10 +101,20 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
     }
 
     public boolean createEntities(){
-        ball = new Ball(R.drawable.ball, xMax/2, yMax/2, 1, xMax, yMax, BALL_WIDTH, BALL_HEIGHT, 0.9f);
-        entityList.add(ball);
+        boolean worked = false;
+        boolean forWorked = false;
 
-        return true;
+        ball = new Ball(R.drawable.ball, xMax/2, yMax/2, 1, xMax, yMax, BALL_WIDTH, BALL_HEIGHT, 0.9f);
+        worked = entityList.add(ball);
+
+        for (int i = 0; i < numGhostsSpawned; i++) {
+            Ghost tempGh = new Ghost(0, 0, R.drawable.flash_light, ball.getCentralPoint(), null, 50, 50, 50, xMax, yMax, 5.0f, 5.0f);
+            tempGh.randomlyGenerate();
+            entityList.add(tempGh);
+            forWorked = true;
+        }
+
+        return worked && forWorked;
     }
 
     @Override
@@ -183,8 +195,8 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
             final int dstWidth = BALL_WIDTH;
             final int dstHeight = BALL_HEIGHT;
             mainBitmap = Bitmap.createScaledBitmap(ballBMP, dstWidth, dstHeight, true);*/
-            ballBMP = decodeSampledBitmapFromResource(getResources(), R.drawable.ball,
-                    BALL_WIDTH, BALL_HEIGHT);
+            /*ballBMP = decodeSampledBitmapFromResource(getResources(), R.drawable.ball,
+                    BALL_WIDTH, BALL_HEIGHT);*/
 
         }
 
@@ -196,48 +208,14 @@ public class MainActivity extends ActionBarActivity implements SensorEventListen
             canvas.drawRect(0, 0, size.x, size.y, bgPaint);
             canvas.drawRect(initChargerX - 10, 40, initChargerX + 410, 110, chargerBGPaint);
             canvas.drawRect(initChargerX, 50, chargerX, 100, chargerPaint);
-            canvas.drawBitmap(ballBMP, ball.getxPosition(), ball.getyPosition(), ballPaint);
+            // canvas.drawBitmap(ballBMP, ball.getxPosition(), ball.getyPosition(), ballPaint);
+            for (Entity e : entityList) {
+                e.draw(canvas, getResources(), genericPaint);
+            }
             invalidate();
         }
 
-        public int calculateInSampleSize(
-                BitmapFactory.Options options, int reqWidth, int reqHeight) {
-            // Raw height and width of image
-            final int height = options.outHeight;
-            final int width = options.outWidth;
-            int inSampleSize = 1;
 
-            if (height > reqHeight || width > reqWidth) {
-
-                final int halfHeight = height / 2;
-                final int halfWidth = width / 2;
-
-                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-                // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > reqHeight
-                        && (halfWidth / inSampleSize) > reqWidth) {
-                    inSampleSize *= 2;
-                }
-            }
-
-            return inSampleSize;
-        }
-
-        public Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                             int reqWidth, int reqHeight) {
-
-            // First decode with inJustDecodeBounds=true to check dimensions
-            final BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeResource(res, resId, options);
-
-            // Calculate inSampleSize
-            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
-
-            // Decode bitmap with inSampleSize set
-            options.inJustDecodeBounds = false;
-            return BitmapFactory.decodeResource(res, resId, options);
-        }
     }
 
     public class ThreadTest extends Thread {

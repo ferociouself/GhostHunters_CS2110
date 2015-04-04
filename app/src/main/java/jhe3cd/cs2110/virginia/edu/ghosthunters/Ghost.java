@@ -75,6 +75,11 @@ public class Ghost extends Entity{
 
     }
 
+    public void randomlyGenerate() {
+        xPosition = (int) (Math.random() * xMax);
+        yPosition = (int) (Math.random() * yMax);
+    }
+
     public float getxVelocity() {
         return xVelocity;
     }
